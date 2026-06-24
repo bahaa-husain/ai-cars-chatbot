@@ -28,14 +28,14 @@ class ChatRequest(BaseModel):
 
 class RecommendationRequest(BaseModel):
     user_id: str
-    viewed_car_ids: Optional[List[str]] = []
-    favorite_car_ids: Optional[List[str]] = []
+    viewed_car_ids: Optional[List[int]] = []
+    favorite_car_ids: Optional[List[int]] = []
     budget_max: Optional[int] = None
     preferred_brand: Optional[str] = None
 
 class FeedbackRequest(BaseModel):
     user_id: str
-    car_id: str
+    car_id: int
     action: str
 
 
@@ -46,8 +46,8 @@ def format_cars_for_prompt(cars: list) -> str:
     for i, car in enumerate(cars, 1):
         analysis = get_market_analysis(car)
         result += f"""
-سيارة {i}: {car['name']} {car['year']}
-- السعر: {car['price']:,} ل.س | الممشى: {car['mileage']:,} كم | الموقع: {car['location']}
+سيارة {i}: {car['title']} {car['year']}
+- السعر: {car['price_syp']:,} ل.س | الممشى: {car['mileage']} كم
 - تقييم السعر: {analysis['verdict']} | {analysis['negotiation_tip']}
 - {car['description']}
 """
@@ -81,7 +81,6 @@ async def chat(request: ChatRequest):
                 budget_max=budget["max"],
                 brand=entities["brand"],
                 body_type=entities["body_type"],
-                location=entities["location"],
             )
             cars_context = f"\n\nنتائج البحث:\n{format_cars_for_prompt(cars)}"
             if not cars:

@@ -86,11 +86,13 @@ def _extract_brand(message: str) -> Optional[str]:
 
 def _extract_body_type(message: str) -> Optional[str]:
     if any(w in message for w in ["SUV", "سيارة دفع", "رباعي", "جيب", "دفع رباعي", "عالية"]):
-        return "suv"
+        return "SUV"
     if any(w in message for w in ["سيدان", "sedan", "عادية"]):
-        return "sedan"
-    if any(w in message for w in ["بيكأب", "pickup", "شاحنة صغيرة"]):
-        return "pickup"
+        return "Sedan"
+    if any(w in message for w in ["هاتشباك", "hatchback"]):
+        return "Hatchback"
+    if any(w in message for w in ["كوبيه", "coupe"]):
+        return "Coupe"
     return None
 
 
@@ -112,12 +114,14 @@ def _extract_year(message: str) -> Optional[int]:
 
 
 def _extract_fuel_type(message: str) -> Optional[str]:
-    if any(w in message for w in ["هايبرد", "hybrid", "كهربائي"]):
-        return "hybrid"
+    if any(w in message for w in ["هايبرد", "hybrid"]):
+        return "Hybrid"
     if any(w in message for w in ["ديزل", "مازوت"]):
-        return "diesel"
-    if any(w in message for w in ["اقتصادي", "اقتصادية", "بنزين قليل"]):
-        return "economic"
+        return "Diesel"
+    if any(w in message for w in ["كهربائي", "electric"]):
+        return "Electric"
+    if any(w in message for w in ["بنزين"]):
+        return "Gas"
     return None
 
 
