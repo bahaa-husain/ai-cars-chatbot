@@ -81,6 +81,8 @@ async def chat(request: ChatRequest):
                 budget_max=budget["max"],
                 brand=entities["brand"],
                 body_type=entities["body_type"],
+                fuel_type=entities["fuel_type"],
+                year_min=entities["year"],
             )
             cars_context = f"\n\nنتائج البحث:\n{format_cars_for_prompt(cars)}"
             if not cars:

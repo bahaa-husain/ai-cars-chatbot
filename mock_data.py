@@ -226,6 +226,7 @@ def search_mock_cars(
     budget_max: int = 999_999_999,
     brand: Optional[str] = None,
     body_type: Optional[str] = None,
+    fuel_type: Optional[str] = None,
     year_min: Optional[int] = None,
     limit: int = 3
 ) -> list:
@@ -238,6 +239,12 @@ def search_mock_cars(
         if body_type:
             try:
                 if car["body_type"] != BodyType[body_type]:
+                    continue
+            except KeyError:
+                continue
+        if fuel_type:
+            try:
+                if car["fuel_type"] != FuelType[fuel_type]:
                     continue
             except KeyError:
                 continue
