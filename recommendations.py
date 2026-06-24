@@ -3,7 +3,7 @@ from typing import Optional
 
 
 def get_recommendations(
-    user_id: str,
+    user_id: int,
     viewed_car_ids: list = [],
     favorite_car_ids: list = [],
     budget_max: Optional[int] = None,
@@ -24,11 +24,11 @@ def _suggested_for_you(budget_max, preferred_brand, exclude_ids, limit):
         if car["id"] in exclude_ids:
             continue
         score = 0
-        if budget_max and car["price"] <= budget_max:
+        if budget_max and car["price_syp"] <= budget_max:
             score += 3
         if preferred_brand and preferred_brand in car["brand"]:
             score += 2
-        score += car["favorites"] / 100
+        score += car["favorite_count"] / 100
         if car["days_listed"] <= 7:
             score += 1
         results.append({**car, "_score": score})
@@ -39,7 +39,7 @@ def _suggested_for_you(budget_max, preferred_brand, exclude_ids, limit):
 def _best_deals(limit):
     deals = []
     for car in MOCK_CARS:
-        diff_pct = ((car["price"] - car["market_avg_price"]) / car["market_avg_price"]) * 100
+        diff_pct = ((car["price_syp"] - car["average_model_price"]) / car["average_model_price"]) * 100
         if diff_pct <= -5:
             deals.append({**car, "_discount": abs(diff_pct)})
     deals.sort(key=lambda x: -x["_discount"])
@@ -48,7 +48,7 @@ def _best_deals(limit):
 
 def _similar_to_viewed(viewed_ids, limit):
     if not viewed_ids:
-        sorted_cars = sorted(MOCK_CARS, key=lambda x: -x["views"])
+        sorted_cars = sorted(MOCK_CARS, key=lambda x: -x["clicks"])
         return _format(sorted_cars[:limit], "most_viewed")
 
     viewed = [c for c in MOCK_CARS if c["id"] in viewed_ids]
@@ -63,13 +63,13 @@ def _similar_to_viewed(viewed_ids, limit):
         if car["id"] not in viewed_ids
         and (car["brand"] in brands or car["body_type"] in body_types)
     ]
-    similar.sort(key=lambda x: -x["favorites"])
+    similar.sort(key=lambda x: -x["favorite_count"])
     return _format(similar[:limit], "similar_to_viewed")
 
 
 def _from_favorites(favorite_ids, limit):
     if not favorite_ids:
-        sorted_cars = sorted(MOCK_CARS, key=lambda x: -x["favorites"])
+        sorted_cars = sorted(MOCK_CARS, key=lambda x: -x["favorite_count"])
         return _format(sorted_cars[:limit], "top_favorited")
 
     favs = [c for c in MOCK_CARS if c["id"] in favorite_ids]
@@ -78,15 +78,15 @@ def _from_favorites(favorite_ids, limit):
 
     brands = set(c["brand"] for c in favs)
     body_types = set(c["body_type"] for c in favs)
-    avg_price = sum(c["price"] for c in favs) / len(favs)
+    avg_price = sum(c["price_syp"] for c in favs) / len(favs)
 
     results = [
         car for car in MOCK_CARS
         if car["id"] not in favorite_ids
         and (car["brand"] in brands or car["body_type"] in body_types)
-        and car["price"] <= avg_price * 1.2
+        and car["price_syp"] <= avg_price * 1.2
     ]
-    results.sort(key=lambda x: -x["favorites"])
+    results.sort(key=lambda x: -x["favorite_count"])
     return _format(results[:limit], "from_favorites")
 
 
@@ -104,11 +104,11 @@ def _format(cars: list, rec_type: str) -> list:
         analysis = get_market_analysis(car)
         output.append({
             "id": car["id"],
-            "name": car["name"],
+            "title": car["title"],
             "year": car["year"],
-            "price": car["price"],
+            "price_syp": car["price_syp"],
+            "price_usd": car["price_usd"],
             "mileage": car["mileage"],
-            "location": car["location"],
             "recommendation_type": rec_type,
             "reason": reasons.get(rec_type, "موصى به"),
             "price_verdict": analysis["verdict"],
