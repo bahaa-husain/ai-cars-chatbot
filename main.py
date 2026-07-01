@@ -4,7 +4,8 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from groq import Groq
 from prompts import build_system_prompt
-from mock_data import search_mock_cars, get_market_analysis
+from mock_data import get_market_analysis
+from backend_client import search_real_cars, get_all_cars
 from intent import detect_intent, extract_entities
 from recommendations import get_recommendations
 from typing import List, Optional
@@ -63,7 +64,7 @@ def health():
     return {
         "status": "healthy",
         "model": "llama-3.3-70b-versatile",
-        "data_source": "mock"
+        "data_source": "real"
     }
 
 @app.post("/ai/chat")
@@ -76,7 +77,7 @@ async def chat(request: ChatRequest):
 
         if intent == "search_cars":
             budget = entities["budget"]
-            cars = search_mock_cars(
+            cars = await search_real_cars(
                 budget_min=budget["min"],
                 budget_max=budget["max"],
                 brand=entities["brand"],
@@ -113,14 +114,16 @@ async def chat(request: ChatRequest):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/ai/recommendations")
-def recommendations(request: RecommendationRequest):
+async def recommendations(request: RecommendationRequest):
     try:
+        all_cars = await get_all_cars()
         recs = get_recommendations(
             user_id=request.user_id,
             viewed_car_ids=request.viewed_car_ids,
             favorite_car_ids=request.favorite_car_ids,
             budget_max=request.budget_max,
             preferred_brand=request.preferred_brand,
+            all_cars=all_cars,
         )
         return {
             "user_id": request.user_id,
